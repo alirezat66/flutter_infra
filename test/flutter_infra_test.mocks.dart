@@ -6,6 +6,7 @@
 import 'dart:async' as _i4;
 
 import 'package:flutter/foundation.dart' as _i3;
+import 'package:flutter_infra/src/storage/local_storage.dart' as _i6;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart' as _i2;
 import 'package:mockito/mockito.dart' as _i1;
 import 'package:shared_preferences/src/shared_preferences_legacy.dart' as _i5;
@@ -439,4 +440,129 @@ class MockSharedPreferences extends _i1.Mock implements _i5.SharedPreferences {
             returnValueForMissingStub: _i4.Future<void>.value(),
           )
           as _i4.Future<void>);
+}
+
+/// A class which mocks [LocalStorage].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockLocalStorage extends _i1.Mock implements _i6.LocalStorage {
+  MockLocalStorage() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i4.Future<bool> deleteKey(String? key) =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteKey, [key]),
+            returnValue: _i4.Future<bool>.value(false),
+          )
+          as _i4.Future<bool>);
+
+  @override
+  _i4.Future<bool> deleteSecureKey(String? key) =>
+      (super.noSuchMethod(
+            Invocation.method(#deleteSecureKey, [key]),
+            returnValue: _i4.Future<bool>.value(false),
+          )
+          as _i4.Future<bool>);
+
+  @override
+  String? getString(String? key, {String? defaultValue}) =>
+      (super.noSuchMethod(
+            Invocation.method(#getString, [key], {#defaultValue: defaultValue}),
+          )
+          as String?);
+
+  @override
+  _i4.Future<String?> getSecureString(String? key, {String? defaultValue}) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #getSecureString,
+              [key],
+              {#defaultValue: defaultValue},
+            ),
+            returnValue: _i4.Future<String?>.value(),
+          )
+          as _i4.Future<String?>);
+
+  @override
+  bool hasKey(String? key) =>
+      (super.noSuchMethod(Invocation.method(#hasKey, [key]), returnValue: false)
+          as bool);
+
+  @override
+  _i4.Future<bool> hasSecureKey(String? key) =>
+      (super.noSuchMethod(
+            Invocation.method(#hasSecureKey, [key]),
+            returnValue: _i4.Future<bool>.value(false),
+          )
+          as _i4.Future<bool>);
+
+  @override
+  _i4.Future<bool> setBool(String? key, bool? value) =>
+      (super.noSuchMethod(
+            Invocation.method(#setBool, [key, value]),
+            returnValue: _i4.Future<bool>.value(false),
+          )
+          as _i4.Future<bool>);
+
+  @override
+  _i4.Future<bool> setSecureBool(String? key, bool? value) =>
+      (super.noSuchMethod(
+            Invocation.method(#setSecureBool, [key, value]),
+            returnValue: _i4.Future<bool>.value(false),
+          )
+          as _i4.Future<bool>);
+
+  @override
+  _i4.Future<bool> setString(String? key, String? value) =>
+      (super.noSuchMethod(
+            Invocation.method(#setString, [key, value]),
+            returnValue: _i4.Future<bool>.value(false),
+          )
+          as _i4.Future<bool>);
+
+  @override
+  _i4.Future<bool> setSecureString(String? key, String? value) =>
+      (super.noSuchMethod(
+            Invocation.method(#setSecureString, [key, value]),
+            returnValue: _i4.Future<bool>.value(false),
+          )
+          as _i4.Future<bool>);
+
+  @override
+  bool getBool(String? key, {bool? defaultValue = false}) =>
+      (super.noSuchMethod(
+            Invocation.method(#getBool, [key], {#defaultValue: defaultValue}),
+            returnValue: false,
+          )
+          as bool);
+
+  @override
+  _i4.Future<bool> getSecureBool(String? key, {bool? defaultValue = false}) =>
+      (super.noSuchMethod(
+            Invocation.method(
+              #getSecureBool,
+              [key],
+              {#defaultValue: defaultValue},
+            ),
+            returnValue: _i4.Future<bool>.value(false),
+          )
+          as _i4.Future<bool>);
+
+  @override
+  _i4.Future<bool> clearAll() =>
+      (super.noSuchMethod(
+            Invocation.method(#clearAll, []),
+            returnValue: _i4.Future<bool>.value(false),
+          )
+          as _i4.Future<bool>);
+
+  @override
+  _i4.Future<bool> clearAllSecure() =>
+      (super.noSuchMethod(
+            Invocation.method(#clearAllSecure, []),
+            returnValue: _i4.Future<bool>.value(false),
+          )
+          as _i4.Future<bool>);
 }

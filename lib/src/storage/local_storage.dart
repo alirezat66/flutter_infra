@@ -9,6 +9,8 @@ abstract class LocalStorage {
   Future<bool> setSecureBool(String key, bool value);
   Future<bool> setString(String key, String value);
   Future<bool> setSecureString(String key, String value);
-  bool getBool(String key, {bool defaultValue});
-  Future<bool> getSecureBool(String key, {bool defaultValue});
+  bool getBool(String key, {bool defaultValue = false});
+  Future<bool> getSecureBool(String key, {bool defaultValue = false});
+  Future<bool> clearAll();
+  Future<bool> clearAllSecure();
 }

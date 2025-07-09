@@ -1,15 +1,17 @@
 # Flutter Infra
 
-A simple and easy-to-use Flutter package that provides local storage capabilities without the complexity of dependency injection. Perfect for storing user preferences, app settings, and sensitive data.
+A comprehensive and easy-to-use Flutter package that provides local storage capabilities with both standard and secure storage options. Perfect for storing user preferences, app settings, and sensitive data with flexible configuration and dependency injection support.
 
 ## Features
 
-- 🚀 **Easy to use** - No dependency injection required, use directly out of the box
+- 🚀 **Easy to use** - Simple static API with intuitive methods
 - 🔒 **Secure storage** - Built-in support for encrypted storage using Flutter Secure Storage
 - 📱 **Standard storage** - Regular key-value storage using SharedPreferences
-- 🔧 **Simple API** - Intuitive methods for common data types (String, bool)
-- 📦 **Ready to use** - Global instance available immediately
-- 🎯 **Type safe** - Full Dart null safety support
+- 🔧 **Flexible API** - Multiple usage patterns from simple static methods to dependency injection
+- 📦 **Type-safe extensions** - Support for JSON, lists, and DateTime storage
+- ⚡ **Performance optimized** - Built-in caching for improved performance
+- 🎯 **Null safe** - Full Dart null safety support
+- ⚙️ **Configurable** - Customizable settings for logging, caching, and more
 
 ## Getting started
 
@@ -20,87 +22,204 @@ dependencies:
   flutter_infra: ^1.0.0
 ```
 
-Then import and start using immediately:
+Then import and initialize:
 
 ```dart
 import 'package:flutter_infra/flutter_infra.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize storage (required before using SimpleStorage)
+  await SimpleStorage.init();
+  
+  runApp(MyApp());
+}
 ```
 
-## Usage
+## Usage Patterns
 
-### Basic Usage (Recommended)
+### 1. Simple Static API (Recommended for most use cases)
 
-Use the global `storage` instance for immediate access:
+The easiest way to use flutter_infra with static methods:
 
 ```dart
 import 'package:flutter_infra/flutter_infra.dart';
 
+// Initialize once in main()
+await SimpleStorage.init();
+
 // Save data
-await storage.setString('username', 'john_doe');
-await storage.setBool('isDarkMode', true);
+await SimpleStorage.setString('username', 'john_doe');
+await SimpleStorage.setBool('isDarkMode', true);
 
 // Retrieve data
-String? username = storage.getString('username');
-bool isDarkMode = storage.getBool('isDarkMode', defaultValue: false);
+String? username = SimpleStorage.getString('username');
+bool isDarkMode = SimpleStorage.getBool('isDarkMode', defaultValue: false);
 
 // Check if key exists
-bool hasUsername = storage.hasKey('username');
+bool hasUsername = SimpleStorage.hasKey('username');
 
 // Delete data
-await storage.deleteKey('username');
+await SimpleStorage.deleteKey('username');
+```
+
+### 2. Dependency Injection Pattern
+
+For apps using dependency injection frameworks:
+
+```dart
+import 'package:flutter_infra/flutter_infra.dart';
+
+// Create storage implementation
+final storageImpl = await StorageImpl.getInstance();
+
+// Inject into service
+final storageService = StorageService(storageImpl);
+
+// Use in your repositories or services
+class UserRepository {
+  final StorageService _storage;
+  
+  UserRepository(this._storage);
+  
+  Future<void> saveUser(User user) async {
+    await _storage.setString('user_id', user.id);
+    await _storage.setBool('is_logged_in', true);
+  }
+}
+```
+
+### 3. Direct Implementation Access
+
+For advanced use cases requiring direct access:
+
+```dart
+import 'package:flutter_infra/flutter_infra.dart';
+
+// Get storage implementation with custom config
+final storage = await StorageImpl.getInstance(
+  config: StorageConfig(
+    enableLogging: true,
+    enableCache: true,
+    cacheTimeout: Duration(minutes: 30),
+  ),
+);
+
+await storage.setString('key', 'value');
+```
+
+## Storage Types
+
+### Standard Storage
+
+For regular app data using SharedPreferences:
+
+```dart
+// String operations
+await SimpleStorage.setString('username', 'john_doe');
+String? username = SimpleStorage.getString('username', defaultValue: 'guest');
+
+// Boolean operations  
+await SimpleStorage.setBool('isDarkMode', true);
+bool isDarkMode = SimpleStorage.getBool('isDarkMode', defaultValue: false);
+
+// Key management
+bool exists = SimpleStorage.hasKey('username');
+await SimpleStorage.deleteKey('username');
+await SimpleStorage.clearAll(); // Clear all standard storage
 ```
 
 ### Secure Storage
 
-For sensitive data like tokens, passwords, or personal information:
+For sensitive data using Flutter Secure Storage:
 
 ```dart
 // Save secure data
-await storage.setSecureString('auth_token', 'your_secret_token');
-await storage.setSecureBool('biometric_enabled', true);
+await SimpleStorage.setSecureString('auth_token', 'your_secret_token');
+await SimpleStorage.setSecureBool('biometric_enabled', true);
 
 // Retrieve secure data
-String? token = await storage.getSecureString('auth_token');
-bool biometricEnabled = await storage.getSecureBool('biometric_enabled');
+String? token = await SimpleStorage.getSecureString('auth_token');
+bool biometricEnabled = await SimpleStorage.getSecureBool('biometric_enabled');
 
-// Check secure key
-bool hasToken = await storage.hasSecureKey('auth_token');
-
-// Delete secure data
-await storage.deleteSecureKey('auth_token');
+// Secure key management
+bool hasToken = await SimpleStorage.hasSecureKey('auth_token');
+await SimpleStorage.deleteSecureKey('auth_token');
+await SimpleStorage.clearAllSecure(); // Clear all secure storage
 ```
 
-### Advanced Usage
+## Advanced Features
 
-Create your own instance if needed:
+### Typed Storage Extensions
+
+Store complex data types with built-in serialization:
 
 ```dart
-final myStorage = SimpleStorage();
-await myStorage.setString('app_version', '1.0.0');
+// JSON objects
+Map<String, dynamic> userProfile = {'name': 'John', 'age': 30};
+await storage.setJson('user_profile', userProfile);
+Map<String, dynamic>? profile = storage.getJson('user_profile');
+
+// String lists
+List<String> tags = ['flutter', 'dart', 'mobile'];
+await storage.setStringList('user_tags', tags);
+List<String>? userTags = storage.getStringList('user_tags');
+
+// DateTime objects
+DateTime lastLogin = DateTime.now();
+await storage.setDateTime('last_login', lastLogin);
+DateTime? loginTime = storage.getDateTime('last_login');
 ```
 
-Clear all data:
+### Configuration Options
+
+Customize storage behavior with `StorageConfig`:
 
 ```dart
-// Clear all standard storage
-await storage.clearAll();
-
-// Clear all secure storage
-await storage.clearAllSecure();
+await SimpleStorage.init(
+  config: StorageConfig(
+    enableLogging: true,        // Enable debug logging
+    enableCache: true,          // Enable in-memory caching
+    cacheTimeout: Duration(minutes: 30), // Cache timeout
+    customSettings: {
+      'encryption_level': 'high',
+    },
+  ),
+);
 ```
 
-Manual initialization (optional):
+### Performance Optimization
+
+The package includes built-in caching for improved performance:
 
 ```dart
-// Usually not needed as initialization happens automatically
-await storage.initialize();
+// First call hits storage
+String value1 = SimpleStorage.getString('cached_key'); 
+
+// Subsequent calls use cache (faster)
+String value2 = SimpleStorage.getString('cached_key'); 
 ```
 
-### Complete Example
+## Complete Example
 
 ```dart
 import 'package:flutter/material.dart';
 import 'package:flutter_infra/flutter_infra.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize storage with custom config
+  await SimpleStorage.init(
+    config: StorageConfig(
+      enableLogging: true,
+      enableCache: true,
+    ),
+  );
+  
+  runApp(MyApp());
+}
 
 class SettingsPage extends StatefulWidget {
   @override
@@ -110,6 +229,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   bool _isDarkMode = false;
   String _username = '';
+  List<String> _favoriteFeatures = [];
 
   @override
   void initState() {
@@ -117,24 +237,41 @@ class _SettingsPageState extends State<SettingsPage> {
     _loadSettings();
   }
 
-  void _loadSettings() {
+  void _loadSettings() async {
+    // Load regular settings
+    final isDarkMode = SimpleStorage.getBool('dark_mode', defaultValue: false);
+    final username = SimpleStorage.getString('username', defaultValue: 'Guest') ?? 'Guest';
+    
+    // Load complex data using extensions
+    final storage = await StorageImpl.getInstance();
+    final features = storage.getStringList('favorite_features') ?? <String>[];
+    
     setState(() {
-      _isDarkMode = storage.getBool('dark_mode', defaultValue: false);
-      _username = storage.getString('username', defaultValue: 'Guest') ?? 'Guest';
+      _isDarkMode = isDarkMode;
+      _username = username;
+      _favoriteFeatures = features;
     });
   }
 
   void _toggleDarkMode(bool value) async {
-    await storage.setBool('dark_mode', value);
+    await SimpleStorage.setBool('dark_mode', value);
     setState(() {
       _isDarkMode = value;
     });
   }
 
   void _saveUsername(String username) async {
-    await storage.setString('username', username);
+    await SimpleStorage.setString('username', username);
     setState(() {
       _username = username;
+    });
+  }
+
+  void _saveFavoriteFeatures(List<String> features) async {
+    final storage = await StorageImpl.getInstance();
+    await storage.setStringList('favorite_features', features);
+    setState(() {
+      _favoriteFeatures = features;
     });
   }
 
@@ -158,6 +295,10 @@ class _SettingsPageState extends State<SettingsPage> {
               },
             ),
           ),
+          ListTile(
+            title: Text('Favorite Features: ${_favoriteFeatures.length}'),
+            subtitle: Text(_favoriteFeatures.join(', ')),
+          ),
         ],
       ),
     );
@@ -167,10 +308,11 @@ class _SettingsPageState extends State<SettingsPage> {
 
 ## API Reference
 
-### LocalStorage Interface
+### SimpleStorage (Static API)
 
 | Method | Description | Storage Type |
 |--------|-------------|--------------|
+| `init({config, secureStorage, sharedPreferences})` | Initialize storage (required) | - |
 | `setString(key, value)` | Save string value | Standard |
 | `getString(key, {defaultValue})` | Get string value | Standard |
 | `setBool(key, value)` | Save boolean value | Standard |
@@ -183,22 +325,48 @@ class _SettingsPageState extends State<SettingsPage> {
 | `getSecureBool(key, {defaultValue})` | Get encrypted boolean | Secure |
 | `hasSecureKey(key)` | Check if secure key exists | Secure |
 | `deleteSecureKey(key)` | Delete secure key | Secure |
+| `clearAll()` | Clear all standard storage | Standard |
+| `clearAllSecure()` | Clear all secure storage | Secure |
 
-### Additional Methods
+### TypedStorage Extensions
 
-| Method | Description |
-|--------|-------------|
-| `clearAll()` | Clear all standard storage |
-| `clearAllSecure()` | Clear all secure storage |
-| `initialize()` | Manual initialization (optional) |
+| Method | Description | Data Type |
+|--------|-------------|-----------|
+| `setJson(key, value)` | Save JSON object | Map<String, dynamic> |
+| `getJson(key)` | Get JSON object | Map<String, dynamic>? |
+| `setStringList(key, value)` | Save string list | List<String> |
+| `getStringList(key)` | Get string list | List<String>? |
+| `setDateTime(key, value)` | Save DateTime | DateTime |
+| `getDateTime(key)` | Get DateTime | DateTime? |
 
-## Why Flutter Infra?
+### StorageConfig
 
-- **No Setup Required**: Start using immediately without any configuration
-- **No DI Complexity**: No need for dependency injection frameworks
-- **Battle Tested**: Built on SharedPreferences and Flutter Secure Storage
-- **Simple API**: Intuitive methods that just work
-- **Null Safe**: Full null safety support for modern Flutter apps
+| Property | Type | Default | Description |
+|----------|------|---------|-------------|
+| `enableLogging` | bool | false | Enable debug logging |
+| `enableCache` | bool | true | Enable in-memory caching |
+| `cacheTimeout` | Duration | 30 minutes | Cache timeout duration |
+| `encryptionKey` | String? | null | Custom encryption key |
+| `customSettings` | Map<String, dynamic> | {} | Custom configuration |
+
+## Architecture
+
+The package provides multiple layers for different use cases:
+
+```
+┌─────────────────────────────────────────┐
+│            SimpleStorage                │  ← Static API (Recommended)
+│         (Static Methods)                │
+├─────────────────────────────────────────┤
+│           StorageService                │  ← Dependency Injection
+│        (Service Wrapper)                │
+├─────────────────────────────────────────┤
+│            StorageImpl                  │  ← Core Implementation
+│      (LocalStorage Interface)          │
+├─────────────────────────────────────────┤
+│   SharedPreferences | SecureStorage    │  ← Platform Storage
+└─────────────────────────────────────────┘
+```
 
 ## Dependencies
 
