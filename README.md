@@ -1,204 +1,187 @@
 # Flutter Infra
 
-A comprehensive and easy-to-use Flutter package that provides local storage capabilities with both standard and secure storage options. Perfect for storing user preferences, app settings, and sensitive data with flexible configuration and dependency injection support.
+A comprehensive Flutter package providing local storage capabilities with both standard and secure storage options. Supports simple static methods, direct implementation access, and dependency injection patterns.
 
 ## Features
 
-- 🚀 **Easy to use** - Simple static API with intuitive methods
-- 🔒 **Secure storage** - Built-in support for encrypted storage using Flutter Secure Storage
-- 📱 **Standard storage** - Regular key-value storage using SharedPreferences
-- 🔧 **Flexible API** - Multiple usage patterns from simple static methods to dependency injection
-- 📦 **Type-safe extensions** - Support for JSON, lists, and DateTime storage
-- ⚡ **Performance optimized** - Built-in caching for improved performance
-- 🎯 **Null safe** - Full Dart null safety support
-- ⚙️ **Configurable** - Customizable settings for logging, caching, and more
+- 🚀 **Simple Static API** - Easy-to-use static methods via `SimpleStorage`
+- 🔧 **Advanced Features** - Direct access to typed extensions via `StorageImpl`
+- 🔒 **Secure Storage** - Encrypted storage using Flutter Secure Storage
+- 📱 **Standard Storage** - Key-value storage using SharedPreferences
+- 🏗️ **Dependency Injection** - Service wrapper for DI frameworks
+- ⚡ **Performance** - Built-in caching with configurable options
+- 🎯 **Null Safe** - Full Dart null safety support
+- ⚙️ **Configurable** - Customizable logging, caching, and more
 
-## Getting started
+## Getting Started
 
-Add this package to your `pubspec.yaml`:
+Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
   flutter_infra: ^1.0.0
 ```
 
-Then import and initialize:
+Import the package:
 
 ```dart
 import 'package:flutter_infra/flutter_infra.dart';
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize storage (required before using SimpleStorage)
-  await SimpleStorage.init();
-  
-  runApp(MyApp());
-}
 ```
 
 ## Usage Patterns
 
-### 1. Simple Static API (Recommended for most use cases)
+### 1. Simple Static API (Recommended for Basic Operations)
 
-The easiest way to use flutter_infra with static methods:
+Initialize once and use static methods:
 
 ```dart
-import 'package:flutter_infra/flutter_infra.dart';
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize storage (required)
+  await SimpleStorage.init();
+  
+  runApp(MyApp());
+}
 
-// Initialize once in main()
-await SimpleStorage.init();
-
-// Save data
+// Use anywhere in your app
 await SimpleStorage.setString('username', 'john_doe');
-await SimpleStorage.setBool('isDarkMode', true);
-
-// Retrieve data
 String? username = SimpleStorage.getString('username');
-bool isDarkMode = SimpleStorage.getBool('isDarkMode', defaultValue: false);
-
-// Check if key exists
-bool hasUsername = SimpleStorage.hasKey('username');
-
-// Delete data
-await SimpleStorage.deleteKey('username');
+bool isDarkMode = SimpleStorage.getBool('darkMode', defaultValue: false);
 ```
 
-### 2. Dependency Injection Pattern
+### 2. Direct Implementation Access (For Advanced Features)
 
-For apps using dependency injection frameworks:
+Get the storage implementation for typed operations:
 
 ```dart
-import 'package:flutter_infra/flutter_infra.dart';
+// Get the storage implementation
+final storage = await StorageImpl.getInstance();
 
-// Create storage implementation
+// Use typed extensions
+await storage.setJson('user', {'name': 'John', 'age': 30});
+Map<String, dynamic>? user = storage.getJson('user');
+
+await storage.setStringList('tags', ['flutter', 'dart']);
+List<String>? tags = storage.getStringList('tags');
+
+await storage.setDateTime('lastLogin', DateTime.now());
+DateTime? lastLogin = storage.getDateTime('lastLogin');
+```
+
+### 3. Dependency Injection Pattern
+
+For clean architecture and testability:
+
+```dart
+// Setup in your DI container
 final storageImpl = await StorageImpl.getInstance();
-
-// Inject into service
 final storageService = StorageService(storageImpl);
 
-// Use in your repositories or services
+// Inject into repositories
 class UserRepository {
   final StorageService _storage;
   
   UserRepository(this._storage);
   
   Future<void> saveUser(User user) async {
-    await _storage.setString('user_id', user.id);
-    await _storage.setBool('is_logged_in', true);
+    await _storage.setString('userId', user.id);
+    await _storage.setBool('isLoggedIn', true);
+  }
+  
+  Future<bool> isUserLoggedIn() async {
+    return _storage.getBool('isLoggedIn');
   }
 }
 ```
 
-### 3. Direct Implementation Access
+## API Reference
 
-For advanced use cases requiring direct access:
+### SimpleStorage (Static Methods)
 
-```dart
-import 'package:flutter_infra/flutter_infra.dart';
-
-// Get storage implementation with custom config
-final storage = await StorageImpl.getInstance(
-  config: StorageConfig(
-    enableLogging: true,
-    enableCache: true,
-    cacheTimeout: Duration(minutes: 30),
-  ),
-);
-
-await storage.setString('key', 'value');
-```
-
-## Storage Types
-
-### Standard Storage
-
-For regular app data using SharedPreferences:
+Perfect for simple key-value operations:
 
 ```dart
+// Initialization (required)
+await SimpleStorage.init({StorageConfig? config});
+
 // String operations
-await SimpleStorage.setString('username', 'john_doe');
-String? username = SimpleStorage.getString('username', defaultValue: 'guest');
+await SimpleStorage.setString('key', 'value');
+String? value = SimpleStorage.getString('key', defaultValue: 'default');
 
-// Boolean operations  
-await SimpleStorage.setBool('isDarkMode', true);
-bool isDarkMode = SimpleStorage.getBool('isDarkMode', defaultValue: false);
+// Boolean operations
+await SimpleStorage.setBool('key', true);
+bool value = SimpleStorage.getBool('key', defaultValue: false);
 
 // Key management
-bool exists = SimpleStorage.hasKey('username');
-await SimpleStorage.deleteKey('username');
-await SimpleStorage.clearAll(); // Clear all standard storage
+bool exists = SimpleStorage.hasKey('key');
+await SimpleStorage.deleteKey('key');
+await SimpleStorage.clearAll();
+
+// Secure storage
+await SimpleStorage.setSecureString('token', 'secret');
+String? token = await SimpleStorage.getSecureString('token');
+await SimpleStorage.setSecureBool('biometric', true);
+bool biometric = await SimpleStorage.getSecureBool('biometric');
+bool hasToken = await SimpleStorage.hasSecureKey('token');
+await SimpleStorage.deleteSecureKey('token');
+await SimpleStorage.clearAllSecure();
 ```
 
-### Secure Storage
+### StorageImpl (Advanced Features)
 
-For sensitive data using Flutter Secure Storage:
+Access the full LocalStorage interface with typed extensions:
 
 ```dart
-// Save secure data
-await SimpleStorage.setSecureString('auth_token', 'your_secret_token');
-await SimpleStorage.setSecureBool('biometric_enabled', true);
+// Get instance (singleton)
+final storage = await StorageImpl.getInstance({
+  StorageConfig? config,
+  FlutterSecureStorage? secureStorage,  // For testing
+  SharedPreferences? sharedPreferences, // For testing
+});
 
-// Retrieve secure data
-String? token = await SimpleStorage.getSecureString('auth_token');
-bool biometricEnabled = await SimpleStorage.getSecureBool('biometric_enabled');
+// All SimpleStorage methods plus:
 
-// Secure key management
-bool hasToken = await SimpleStorage.hasSecureKey('auth_token');
-await SimpleStorage.deleteSecureKey('auth_token');
-await SimpleStorage.clearAllSecure(); // Clear all secure storage
+// JSON operations
+await storage.setJson('data', {'key': 'value'});
+Map<String, dynamic>? data = storage.getJson('data');
+
+// List operations
+await storage.setStringList('items', ['a', 'b', 'c']);
+List<String>? items = storage.getStringList('items');
+
+// DateTime operations
+await storage.setDateTime('timestamp', DateTime.now());
+DateTime? timestamp = storage.getDateTime('timestamp');
 ```
 
-## Advanced Features
+### StorageService (Dependency Injection)
 
-### Typed Storage Extensions
-
-Store complex data types with built-in serialization:
+Service wrapper implementing the same interface as StorageImpl:
 
 ```dart
-// JSON objects
-Map<String, dynamic> userProfile = {'name': 'John', 'age': 30};
-await storage.setJson('user_profile', userProfile);
-Map<String, dynamic>? profile = storage.getJson('user_profile');
+final service = StorageService(storageImpl);
 
-// String lists
-List<String> tags = ['flutter', 'dart', 'mobile'];
-await storage.setStringList('user_tags', tags);
-List<String>? userTags = storage.getStringList('user_tags');
-
-// DateTime objects
-DateTime lastLogin = DateTime.now();
-await storage.setDateTime('last_login', lastLogin);
-DateTime? loginTime = storage.getDateTime('last_login');
+// Same methods as StorageImpl but without extensions
+await service.setString('key', 'value');
+String? value = service.getString('key');
+// ... all other LocalStorage methods
 ```
 
-### Configuration Options
+### StorageConfig
 
-Customize storage behavior with `StorageConfig`:
+Configure storage behavior:
 
 ```dart
 await SimpleStorage.init(
   config: StorageConfig(
-    enableLogging: true,        // Enable debug logging
-    enableCache: true,          // Enable in-memory caching
-    cacheTimeout: Duration(minutes: 30), // Cache timeout
-    customSettings: {
-      'encryption_level': 'high',
-    },
+    enableLogging: true,           // Debug logging
+    enableCache: true,             // In-memory caching
+    cacheTimeout: Duration(minutes: 30),
+    encryptionKey: 'custom-key',   // Custom encryption
+    customSettings: {'setting': 'value'},
   ),
 );
-```
-
-### Performance Optimization
-
-The package includes built-in caching for improved performance:
-
-```dart
-// First call hits storage
-String value1 = SimpleStorage.getString('cached_key'); 
-
-// Subsequent calls use cache (faster)
-String value2 = SimpleStorage.getString('cached_key'); 
 ```
 
 ## Complete Example
@@ -210,71 +193,73 @@ import 'package:flutter_infra/flutter_infra.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize storage with custom config
+  // Initialize with configuration
   await SimpleStorage.init(
-    config: StorageConfig(
-      enableLogging: true,
-      enableCache: true,
-    ),
+    config: StorageConfig(enableLogging: true, enableCache: true),
   );
   
   runApp(MyApp());
 }
 
-class SettingsPage extends StatefulWidget {
+class SettingsScreen extends StatefulWidget {
   @override
-  _SettingsPageState createState() => _SettingsPageState();
+  _SettingsScreenState createState() => _SettingsScreenState();
 }
 
-class _SettingsPageState extends State<SettingsPage> {
-  bool _isDarkMode = false;
+class _SettingsScreenState extends State<SettingsScreen> {
+  bool _darkMode = false;
   String _username = '';
-  List<String> _favoriteFeatures = [];
-
+  List<String> _recentSearches = [];
+  DateTime? _lastLogin;
+  
   @override
   void initState() {
     super.initState();
     _loadSettings();
   }
-
-  void _loadSettings() async {
-    // Load regular settings
-    final isDarkMode = SimpleStorage.getBool('dark_mode', defaultValue: false);
-    final username = SimpleStorage.getString('username', defaultValue: 'Guest') ?? 'Guest';
+  
+  Future<void> _loadSettings() async {
+    // Load basic settings using SimpleStorage
+    final darkMode = SimpleStorage.getBool('darkMode', defaultValue: false);
+    final username = SimpleStorage.getString('username', defaultValue: '');
     
-    // Load complex data using extensions
+    // Load complex data using StorageImpl extensions
     final storage = await StorageImpl.getInstance();
-    final features = storage.getStringList('favorite_features') ?? <String>[];
+    final searches = storage.getStringList('recentSearches') ?? <String>[];
+    final lastLogin = storage.getDateTime('lastLogin');
     
     setState(() {
-      _isDarkMode = isDarkMode;
+      _darkMode = darkMode;
       _username = username;
-      _favoriteFeatures = features;
+      _recentSearches = searches;
+      _lastLogin = lastLogin;
     });
   }
-
-  void _toggleDarkMode(bool value) async {
-    await SimpleStorage.setBool('dark_mode', value);
-    setState(() {
-      _isDarkMode = value;
-    });
+  
+  Future<void> _saveDarkMode(bool value) async {
+    await SimpleStorage.setBool('darkMode', value);
+    setState(() => _darkMode = value);
   }
-
-  void _saveUsername(String username) async {
-    await SimpleStorage.setString('username', username);
-    setState(() {
-      _username = username;
-    });
+  
+  Future<void> _saveUsername(String value) async {
+    await SimpleStorage.setString('username', value);
+    setState(() => _username = value);
   }
-
-  void _saveFavoriteFeatures(List<String> features) async {
+  
+  Future<void> _addRecentSearch(String search) async {
     final storage = await StorageImpl.getInstance();
-    await storage.setStringList('favorite_features', features);
-    setState(() {
-      _favoriteFeatures = features;
-    });
+    final updated = [..._recentSearches, search];
+    await storage.setStringList('recentSearches', updated);
+    setState(() => _recentSearches = updated);
   }
-
+  
+  Future<void> _updateLastLogin() async {
+    final storage = await StorageImpl.getInstance();
+    final now = DateTime.now();
+    await storage.setDateTime('lastLogin', now);
+    setState(() => _lastLogin = now);
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -283,97 +268,128 @@ class _SettingsPageState extends State<SettingsPage> {
         children: [
           SwitchListTile(
             title: Text('Dark Mode'),
-            value: _isDarkMode,
-            onChanged: _toggleDarkMode,
+            value: _darkMode,
+            onChanged: _saveDarkMode,
           ),
           ListTile(
-            title: Text('Username: $_username'),
-            trailing: IconButton(
-              icon: Icon(Icons.edit),
-              onPressed: () {
-                // Show dialog to edit username
-              },
-            ),
+            title: Text('Username'),
+            subtitle: Text(_username.isEmpty ? 'Not set' : _username),
+            trailing: Icon(Icons.edit),
+            onTap: () => _showUsernameDialog(),
           ),
           ListTile(
-            title: Text('Favorite Features: ${_favoriteFeatures.length}'),
-            subtitle: Text(_favoriteFeatures.join(', ')),
+            title: Text('Recent Searches'),
+            subtitle: Text('${_recentSearches.length} items'),
+            trailing: Icon(Icons.add),
+            onTap: () => _addRecentSearch('Flutter ${DateTime.now().millisecond}'),
+          ),
+          ListTile(
+            title: Text('Last Login'),
+            subtitle: Text(_lastLogin?.toString() ?? 'Never'),
+            trailing: Icon(Icons.refresh),
+            onTap: _updateLastLogin,
           ),
         ],
       ),
     );
   }
+  
+  void _showUsernameDialog() {
+    // Implementation for username dialog
+  }
 }
 ```
 
-## API Reference
+## Key Differences Between Classes
 
-### SimpleStorage (Static API)
+| Feature | SimpleStorage | StorageImpl | StorageService |
+|---------|---------------|-------------|----------------|
+| **Usage** | Static methods | Direct instance | DI wrapper |
+| **Basic Operations** | ✅ | ✅ | ✅ |
+| **Secure Operations** | ✅ | ✅ | ✅ |
+| **Typed Extensions** | ❌ | ✅ | ❌ |
+| **JSON Support** | ❌ | ✅ | ❌ |
+| **List Support** | ❌ | ✅ | ❌ |
+| **DateTime Support** | ❌ | ✅ | ❌ |
+| **Configuration** | ✅ | ✅ | Via constructor |
+| **Singleton** | ✅ | ✅ | No |
 
-| Method | Description | Storage Type |
-|--------|-------------|--------------|
-| `init({config, secureStorage, sharedPreferences})` | Initialize storage (required) | - |
-| `setString(key, value)` | Save string value | Standard |
-| `getString(key, {defaultValue})` | Get string value | Standard |
-| `setBool(key, value)` | Save boolean value | Standard |
-| `getBool(key, {defaultValue})` | Get boolean value | Standard |
-| `hasKey(key)` | Check if key exists | Standard |
-| `deleteKey(key)` | Delete key | Standard |
-| `setSecureString(key, value)` | Save encrypted string | Secure |
-| `getSecureString(key, {defaultValue})` | Get encrypted string | Secure |
-| `setSecureBool(key, value)` | Save encrypted boolean | Secure |
-| `getSecureBool(key, {defaultValue})` | Get encrypted boolean | Secure |
-| `hasSecureKey(key)` | Check if secure key exists | Secure |
-| `deleteSecureKey(key)` | Delete secure key | Secure |
-| `clearAll()` | Clear all standard storage | Standard |
-| `clearAllSecure()` | Clear all secure storage | Secure |
+## When to Use What
 
-### TypedStorage Extensions
+- **SimpleStorage**: Quick setup, basic string/bool operations, simple apps
+- **StorageImpl**: Need JSON/List/DateTime storage, complex data structures
+- **StorageService**: Clean architecture, dependency injection, testing
 
-| Method | Description | Data Type |
-|--------|-------------|-----------|
-| `setJson(key, value)` | Save JSON object | Map<String, dynamic> |
-| `getJson(key)` | Get JSON object | Map<String, dynamic>? |
-| `setStringList(key, value)` | Save string list | List<String> |
-| `getStringList(key)` | Get string list | List<String>? |
-| `setDateTime(key, value)` | Save DateTime | DateTime |
-| `getDateTime(key)` | Get DateTime | DateTime? |
+## Storage Types
 
-### StorageConfig
+### Standard Storage (SharedPreferences)
+```dart
+await SimpleStorage.setString('key', 'value');
+await SimpleStorage.setBool('flag', true);
+bool exists = SimpleStorage.hasKey('key');
+await SimpleStorage.deleteKey('key');
+await SimpleStorage.clearAll();
+```
 
-| Property | Type | Default | Description |
-|----------|------|---------|-------------|
-| `enableLogging` | bool | false | Enable debug logging |
-| `enableCache` | bool | true | Enable in-memory caching |
-| `cacheTimeout` | Duration | 30 minutes | Cache timeout duration |
-| `encryptionKey` | String? | null | Custom encryption key |
-| `customSettings` | Map<String, dynamic> | {} | Custom configuration |
+### Secure Storage (Flutter Secure Storage)
+```dart
+await SimpleStorage.setSecureString('token', 'secret');
+await SimpleStorage.setSecureBool('biometric', true);
+bool hasToken = await SimpleStorage.hasSecureKey('token');
+await SimpleStorage.deleteSecureKey('token');
+await SimpleStorage.clearAllSecure();
+```
+
+### Typed Storage (Extensions on LocalStorage)
+```dart
+final storage = await StorageImpl.getInstance();
+
+// JSON
+await storage.setJson('user', {'name': 'John', 'age': 30});
+Map<String, dynamic>? user = storage.getJson('user');
+
+// Lists
+await storage.setStringList('tags', ['flutter', 'dart']);
+List<String>? tags = storage.getStringList('tags');
+
+// DateTime
+await storage.setDateTime('created', DateTime.now());
+DateTime? created = storage.getDateTime('created');
+```
+
+## Configuration Options
+
+```dart
+StorageConfig(
+  enableLogging: false,        // Enable debug logs
+  enableCache: true,           // Enable in-memory caching
+  cacheTimeout: Duration(minutes: 30),  // Cache expiration
+  encryptionKey: null,         // Custom encryption key
+  customSettings: {},          // Additional settings
+)
+```
 
 ## Architecture
 
-The package provides multiple layers for different use cases:
-
 ```
-┌─────────────────────────────────────────┐
-│            SimpleStorage                │  ← Static API (Recommended)
-│         (Static Methods)                │
-├─────────────────────────────────────────┤
-│           StorageService                │  ← Dependency Injection
-│        (Service Wrapper)                │
-├─────────────────────────────────────────┤
-│            StorageImpl                  │  ← Core Implementation
-│      (LocalStorage Interface)          │
-├─────────────────────────────────────────┤
-│   SharedPreferences | SecureStorage    │  ← Platform Storage
-└─────────────────────────────────────────┘
+SimpleStorage (Static API)
+    ↓
+StorageImpl (Singleton)
+    ↓
+LocalStorage (Interface)
+    ↓
+SharedPreferences + FlutterSecureStorage
+
+StorageService (DI Wrapper)
+    ↓
+LocalStorage (Interface)
 ```
 
 ## Dependencies
 
-This package uses:
-- `shared_preferences` for standard local storage
+- `shared_preferences` for standard storage
 - `flutter_secure_storage` for encrypted storage
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions welcome! Please submit Pull Requests.
