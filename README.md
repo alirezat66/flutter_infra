@@ -95,6 +95,154 @@ class UserRepository {
 }
 ```
 
+### 4. GetIt Dependency Injection
+
+Using GetIt for dependency injection:
+
+```dart
+import 'package:get_it/get_it.dart';
+import 'package:flutter_infra/flutter_infra.dart';
+
+final getIt = GetIt.instance;
+
+Future<void> setupDependencies() async {
+  // Register storage implementation
+  final storageImpl = await StorageImpl.getInstance(
+    config: StorageConfig(enableLogging: true, enableCache: true),
+  );
+  getIt.registerSingleton<LocalStorage>(storageImpl);
+  
+  // Register storage service for DI
+  getIt.registerSingleton<StorageService>(
+    StorageService(getIt<LocalStorage>()),
+  );
+  
+  // Register repositories
+  getIt.registerSingleton<UserRepository>(
+    UserRepository(getIt<StorageService>()),
+  );
+  
+  // Register other services
+  getIt.registerSingleton<SettingsRepository>(
+    SettingsRepository(getIt<LocalStorage>()), // Direct access for typed operations
+  );
+}
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Setup dependencies
+  await setupDependencies();
+  
+  runApp(MyApp());
+}
+
+// Usage in widgets
+class ProfileScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final userRepo = getIt<UserRepository>();
+    final settingsRepo = getIt<SettingsRepository>();
+    
+    return FutureBuilder(
+      future: userRepo.isUserLoggedIn(),
+      builder: (context, snapshot) {
+        // Build UI based on login status
+        return Container();
+      },
+    );
+  }
+}
+
+// Repository examples
+class UserRepository {
+  final StorageService _storage;
+  
+  UserRepository(this._storage);
+  
+  Future<void> saveUser(User user) async {
+    await _storage.setString('userId', user.id);
+    await _storage.setString('username', user.name);
+    await _storage.setBool('isLoggedIn', true);
+  }
+  
+  Future<User?> getCurrentUser() async {
+    final userId = _storage.getString('userId');
+    final username = _storage.getString('username');
+    final isLoggedIn = _storage.getBool('isLoggedIn');
+    
+    if (userId != null && username != null && isLoggedIn) {
+      return User(id: userId, name: username);
+    }
+    return null;
+  }
+  
+  Future<void> logout() async {
+    await _storage.deleteKey('userId');
+    await _storage.deleteKey('username');
+    await _storage.setBool('isLoggedIn', false);
+  }
+}
+
+class SettingsRepository {
+  final LocalStorage _storage; // Direct access for typed operations
+  
+  SettingsRepository(this._storage);
+  
+  Future<void> saveUserPreferences(UserPreferences prefs) async {
+    // Use typed storage for complex data
+    await _storage.setJson('userPreferences', prefs.toJson());
+    await _storage.setStringList('favoriteTopics', prefs.favoriteTopics);
+    await _storage.setDateTime('lastUpdated', DateTime.now());
+  }
+  
+  Future<UserPreferences?> getUserPreferences() async {
+    final json = _storage.getJson('userPreferences');
+    if (json != null) {
+      return UserPreferences.fromJson(json);
+    }
+    return null;
+  }
+  
+  Future<List<String>> getFavoriteTopics() async {
+    return _storage.getStringList('favoriteTopics') ?? [];
+  }
+}
+
+// Models
+class User {
+  final String id;
+  final String name;
+  
+  User({required this.id, required this.name});
+}
+
+class UserPreferences {
+  final bool darkMode;
+  final String language;
+  final List<String> favoriteTopics;
+  
+  UserPreferences({
+    required this.darkMode,
+    required this.language,
+    required this.favoriteTopics,
+  });
+  
+  Map<String, dynamic> toJson() => {
+    'darkMode': darkMode,
+    'language': language,
+    'favoriteTopics': favoriteTopics,
+  };
+  
+  factory UserPreferences.fromJson(Map<String, dynamic> json) =>
+      UserPreferences(
+        darkMode: json['darkMode'] ?? false,
+        language: json['language'] ?? 'en',
+        favoriteTopics: List<String>.from(json['favoriteTopics'] ?? []),
+      );
+}
+```
+
 ## API Reference
 
 ### SimpleStorage (Static Methods)
@@ -317,8 +465,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
 ## When to Use What
 
 - **SimpleStorage**: Quick setup, basic string/bool operations, simple apps
-- **StorageImpl**: Need JSON/List/DateTime storage, complex data structures
+- **StorageImpl**: Need JSON/List/DateTime storage, complex data structures  
 - **StorageService**: Clean architecture, dependency injection, testing
+- **GetIt + StorageService**: Enterprise apps, complex DI, clean architecture
+- **GetIt + LocalStorage**: When you need both DI and typed storage operations
 
 ## Storage Types
 
@@ -387,8 +537,12 @@ LocalStorage (Interface)
 
 ## Dependencies
 
+Core dependencies:
 - `shared_preferences` for standard storage
 - `flutter_secure_storage` for encrypted storage
+
+Optional dependencies for examples:
+- `get_it` for dependency injection (GetIt example)
 
 ## Contributing
 
