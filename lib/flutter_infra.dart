@@ -7,8 +7,10 @@ library;
 // Export the LocalStorage interface
 export 'src/storage/local_storage.dart';
 
-// Export the main StorageImpl implementation
-export 'src/storage/storage_impl.dart';
+// Export storage implementations
+export 'src/storage/preferences_storage_impl.dart';
+export 'src/storage/secure_storage_impl.dart';
+export 'src/storage/hive_storage_impl.dart';
 
 // Export the SimpleStorage static wrapper for easy usage
 export 'src/storage/simple_storage.dart';
