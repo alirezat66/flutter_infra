@@ -6,11 +6,11 @@ A comprehensive Flutter package providing clean, type-safe local storage solutio
 
 - 🎯 **Multiple Storage Backends**: SharedPreferences, FlutterSecureStorage, and Hive support
 - 🔐 **Security First**: Clear separation between normal and secure storage operations  
-- 🧩 **Type Safety**: Built-in support for JSON, lists, DateTime, and custom objects
+- 🧩 **Type Safety**: Built-in support for JSON, lists, DateTime, and custom objects with both normal and secure versions
 - ⚡ **Performance**: Optional caching and optimized storage implementations
 - 🔧 **Dependency Injection**: Clean DI support with flexible configuration
 - 📱 **Cross Platform**: Works on iOS, Android, Web, Windows, macOS, and Linux
-- 🧪 **Fully Tested**: Comprehensive test coverage with mock support
+- 🧪 **Fully Tested**: Comprehensive test coverage with 170+ tests and mock support
 
 ## 🚀 Quick Start
 
@@ -69,7 +69,7 @@ graph TD
 | Component | Purpose | Use Case |
 |-----------|---------|----------|
 | **SimpleStorage** | Static wrapper for quick access | Simple app-wide storage |
-| **StorageService** | DI-friendly service class | Complex apps with DI |
+| **StorageService** | DI-friendly service class with typed extensions | Complex apps with DI |
 | **PreferencesStorageImpl** | SharedPreferences backend | Basic key-value storage |
 | **SecureStorageImpl** | FlutterSecureStorage backend | Sensitive data (tokens, passwords) |
 | **HiveStorageImpl** | Hive database backend | High-performance storage with optional encryption |
@@ -148,23 +148,82 @@ final secureStorage = await HiveStorageImpl.getInstance(
 );
 ```
 
-### Typed Extensions
+### 🧩 Typed Extensions on StorageService
 
-All storage implementations support typed operations:
+StorageService includes powerful typed extensions for complex data with **both normal and secure versions**:
 
+#### JSON Operations
 ```dart
-// JSON objects
-final user = {'name': 'John', 'age': 30};
-await storage.setJson('user', user);
-final retrievedUser = await storage.getJson('user');
+final service = await StorageService.create();
 
-// String lists
-await storage.setStringList('tags', ['flutter', 'dart']);
-final tags = await storage.getStringList('tags');
+// Normal JSON storage
+final userData = {'name': 'John', 'age': 30, 'email': 'john@example.com'};
+await service.setJson('user', userData);
+final user = await service.getJson('user');
 
-// DateTime objects
-await storage.setDateTime('lastLogin', DateTime.now());
-final lastLogin = await storage.getDateTime('lastLogin');
+// Secure JSON storage for sensitive data
+final credentials = {'token': 'abc123', 'refreshToken': 'xyz789'};
+await service.setSecureJson('auth', credentials);
+final auth = await service.getSecureJson('auth');
+```
+
+#### String List Operations  
+```dart
+// Normal string lists
+const tags = ['flutter', 'dart', 'mobile'];
+await service.setStringList('user_tags', tags);
+final userTags = await service.getStringList('user_tags');
+
+// Secure string lists for sensitive data
+const permissions = ['admin', 'write', 'delete'];
+await service.setSecureStringList('user_permissions', permissions);
+final userPermissions = await service.getSecureStringList('user_permissions');
+```
+
+#### DateTime Operations
+```dart
+// Normal DateTime storage
+final loginTime = DateTime.now();
+await service.setDateTime('last_login', loginTime);
+final lastLogin = await service.getDateTime('last_login');
+
+// Secure DateTime storage for sensitive timestamps
+final tokenExpiry = DateTime.now().add(Duration(hours: 24));
+await service.setSecureDateTime('token_expiry', tokenExpiry);
+final expiry = await service.getSecureDateTime('token_expiry');
+```
+
+#### Complete Typed Operations Example
+```dart
+final service = await StorageService.create();
+
+// User profile (normal storage)
+await service.setJson('profile', {
+  'name': 'John Doe',
+  'email': 'john@example.com',
+  'preferences': {'theme': 'dark', 'notifications': true}
+});
+
+await service.setStringList('interests', ['tech', 'music', 'travel']);
+await service.setDateTime('profile_updated', DateTime.now());
+
+// Authentication data (secure storage)
+await service.setSecureJson('auth_tokens', {
+  'access_token': 'eyJhbGciOiJIUzI1NiIs...',
+  'refresh_token': 'dGhpcyBpcyBhIHJlZnJlc2g...'
+});
+
+await service.setSecureStringList('roles', ['user', 'premium']);
+await service.setSecureDateTime('session_expires', DateTime.now().add(Duration(hours: 2)));
+
+// Retrieve data
+final profile = await service.getJson('profile');
+final interests = await service.getStringList('interests');
+final lastUpdated = await service.getDateTime('profile_updated');
+
+final authTokens = await service.getSecureJson('auth_tokens');
+final userRoles = await service.getSecureStringList('roles');
+final sessionExpiry = await service.getSecureDateTime('session_expires');
 ```
 
 ## 🔧 Dependency Injection
@@ -187,7 +246,7 @@ Future<void> setupDependencies() async {
     config: StorageConfig(enableLogging: true),
   );
   
-  // Register storage service
+  // Register storage service with typed extensions
   getIt.registerSingleton<StorageService>(
     StorageService(
       normalStorage: normalStorage,
@@ -221,20 +280,37 @@ class UserRepository {
   UserRepository(this._storage);
   
   Future<void> saveUser(User user) async {
-    await _storage.setJson('user', user.toJson());
+    // Use typed JSON extension
+    await _storage.setJson('user_profile', user.toJson());
+    await _storage.setDateTime('profile_updated', DateTime.now());
   }
   
   Future<User?> getUser() async {
-    final userData = await _storage.getJson('user');
+    final userData = await _storage.getJson('user_profile');
     return userData != null ? User.fromJson(userData) : null;
   }
   
-  Future<void> saveAuthToken(String token) async {
-    await _storage.setSecureString('auth_token', token);
+  Future<void> saveAuthTokens(String accessToken, String refreshToken) async {
+    // Use secure typed JSON extension
+    await _storage.setSecureJson('auth_tokens', {
+      'access_token': accessToken,
+      'refresh_token': refreshToken,
+    });
+    await _storage.setSecureDateTime('token_created', DateTime.now());
   }
   
-  Future<String?> getAuthToken() async {
-    return await _storage.getSecureString('auth_token');
+  Future<Map<String, dynamic>?> getAuthTokens() async {
+    return await _storage.getSecureJson('auth_tokens');
+  }
+  
+  Future<void> saveUserPreferences(List<String> interests, Map<String, dynamic> settings) async {
+    // Use typed extensions for complex data
+    await _storage.setStringList('user_interests', interests);
+    await _storage.setJson('user_settings', settings);
+  }
+  
+  Future<List<String>?> getUserInterests() async {
+    return await _storage.getStringList('user_interests');
   }
 }
 
@@ -252,11 +328,21 @@ class SettingsRepository {
   }
   
   Future<void> setBiometricsEnabled(bool enabled) async {
+    // Biometric settings are sensitive - use secure storage
     await _storage.setSecureBool('biometrics_enabled', enabled);
   }
   
   Future<bool> isBiometricsEnabled() async {
     return await _storage.getSecureBool('biometrics_enabled');
+  }
+  
+  Future<void> saveAppSettings(Map<String, dynamic> settings) async {
+    await _storage.setJson('app_settings', settings);
+    await _storage.setDateTime('settings_updated', DateTime.now());
+  }
+  
+  Future<DateTime?> getLastSettingsUpdate() async {
+    return await _storage.getDateTime('settings_updated');
   }
 }
 ```
@@ -273,7 +359,24 @@ class UserProfilePage extends StatelessWidget {
       future: userRepo.getUser(),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          return Text('Welcome, ${snapshot.data!.name}');
+          return Column(
+            children: [
+              Text('Welcome, ${snapshot.data!.name}'),
+              FutureBuilder<List<String>?>(
+                future: userRepo.getUserInterests(),
+                builder: (context, interestsSnapshot) {
+                  if (interestsSnapshot.hasData) {
+                    return Wrap(
+                      children: interestsSnapshot.data!
+                          .map((interest) => Chip(label: Text(interest)))
+                          .toList(),
+                    );
+                  }
+                  return CircularProgressIndicator();
+                },
+              ),
+            ],
+          );
         }
         return CircularProgressIndicator();
       },
@@ -321,9 +424,24 @@ class CustomStorageImpl implements LocalStorage {
 // Use in StorageService
 final customStorage = CustomStorageImpl();
 final service = StorageService(normalStorage: customStorage);
+
+// Now you have typed extensions on your custom storage!
+await service.setJson('data', {'custom': 'implementation'});
+await service.setStringList('items', ['a', 'b', 'c']);
+await service.setDateTime('timestamp', DateTime.now());
 ```
 
 ## 🧪 Testing
+
+### Test Organization
+
+Tests are organized into focused, maintainable files:
+
+- **`preferences_storage_impl_test.dart`** - SharedPreferences functionality (22 tests)
+- **`secure_storage_impl_test.dart`** - FlutterSecureStorage functionality (25 tests)
+- **`storage_service_test.dart`** - Service delegation logic (71 tests)
+- **`storage_config_test.dart`** - Configuration options (16 tests)
+- **`typed_storage_ext_test.dart`** - Typed extensions with normal/secure variants (36 tests)
 
 ### Test Setup
 
@@ -337,32 +455,67 @@ class MockStorage extends Mock implements LocalStorage {}
 void main() {
   group('UserRepository Tests', () {
     late UserRepository repository;
-    late MockStorage mockStorage;
+    late MockStorage mockNormalStorage;
+    late MockStorage mockSecureStorage;
     
     setUp(() {
-      mockStorage = MockStorage();
+      mockNormalStorage = MockStorage();
+      mockSecureStorage = MockStorage();
       final service = StorageService(
-        normalStorage: mockStorage,
-        secureStorage: mockStorage,
+        normalStorage: mockNormalStorage,
+        secureStorage: mockSecureStorage,
       );
       repository = UserRepository(service);
     });
     
-    test('should save and retrieve user', () async {
+    test('should save and retrieve user with typed extensions', () async {
       final user = User(name: 'John', email: 'john@example.com');
       
-      when(mockStorage.setJson('user', any))
+      // Mock typed JSON operations
+      when(mockNormalStorage.setString('user_profile', any))
           .thenAnswer((_) async => true);
-      when(mockStorage.getJson('user'))
-          .thenAnswer((_) async => user.toJson());
+      when(mockNormalStorage.getString('user_profile', defaultValue: anyNamed('defaultValue')))
+          .thenAnswer((_) async => '{"name":"John","email":"john@example.com"}');
       
       await repository.saveUser(user);
       final retrievedUser = await repository.getUser();
       
       expect(retrievedUser?.name, 'John');
+      verify(mockNormalStorage.setString('user_profile', any)).called(1);
+    });
+    
+    test('should handle secure token operations', () async {
+      const accessToken = 'access123';
+      const refreshToken = 'refresh456';
+      
+      when(mockSecureStorage.setString('auth_tokens', any))
+          .thenAnswer((_) async => true);
+      when(mockSecureStorage.getString('auth_tokens', defaultValue: anyNamed('defaultValue')))
+          .thenAnswer((_) async => '{"access_token":"access123","refresh_token":"refresh456"}');
+      
+      await repository.saveAuthTokens(accessToken, refreshToken);
+      final tokens = await repository.getAuthTokens();
+      
+      expect(tokens?['access_token'], accessToken);
+      expect(tokens?['refresh_token'], refreshToken);
+      verify(mockSecureStorage.setString('auth_tokens', any)).called(1);
     });
   });
 }
+```
+
+### Running Tests
+
+```bash
+# Run all tests (170+ tests)
+flutter test
+
+# Run specific test suites
+flutter test test/storage_service_test.dart
+flutter test test/typed_storage_ext_test.dart
+
+# Run with coverage
+flutter test --coverage
 ```
 
 ## 📝 Migration Guide
@@ -374,6 +527,9 @@ void main() {
 // Old way with boolean parameter
 await storage.setString('key', 'value', secure: false);
 await storage.setString('token', 'secret', secure: true);
+
+// Limited typed operations
+final json = storage.getJson('data'); // Only on LocalStorage
 ```
 
 #### After (New Architecture)
@@ -381,6 +537,14 @@ await storage.setString('token', 'secret', secure: true);
 // New way with separate methods
 await storage.setString('key', 'value');        // Normal storage
 await storage.setSecureString('token', 'secret'); // Secure storage
+
+// Rich typed operations on StorageService
+await service.setJson('user', userData);         // Normal JSON
+await service.setSecureJson('auth', authData);   // Secure JSON
+await service.setStringList('tags', tagList);    // Normal list
+await service.setSecureStringList('roles', roles); // Secure list
+await service.setDateTime('login', DateTime.now()); // Normal DateTime
+await service.setSecureDateTime('expire', expiry);  // Secure DateTime
 
 // Or with SimpleStorage
 await SimpleStorage.setString('key', 'value');
@@ -391,9 +555,10 @@ await SimpleStorage.setSecureString('token', 'secret');
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+3. Add comprehensive tests for your changes
+4. Commit your changes (`git commit -m 'Add amazing feature'`)
+5. Push to the branch (`git push origin feature/amazing-feature`)
+6. Open a Pull Request
 
 ## 📄 License
 
