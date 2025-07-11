@@ -1,7 +1,19 @@
 name: flutter_infra
-description: "A new Flutter package for implementing infrastructure that almost all apps need"
+description: A comprehensive Flutter package providing clean, type-safe local storage solutions and robust network infrastructure with advanced token management and refresh strategies.
 version: 0.0.1
-homepage: none
+homepage: https://github.com/your-username/flutter_infra
+repository: https://github.com/your-username/flutter_infra
+issue_tracker: https://github.com/your-username/flutter_infra/issues
+documentation: https://github.com/your-username/flutter_infra/tree/main/doc
+
+topics:
+  - flutter
+  - storage
+  - network
+  - http
+  - secure-storage
+  - token-management
+  - infrastructure
 
 environment:
   sdk: ^3.7.2

@@ -69,18 +69,18 @@ final userProfile = await networkService.getJson('/protected/profile');
 ## 📚 Documentation
 
 ### 📖 Getting Started
-- **[🚀 Quick Start Guide](docs/quick-start.md)** - Get up and running in minutes
-- **[🏗️ Architecture Overview](docs/architecture.md)** - System design and component relationships
-- **[⚙️ Configuration Guide](docs/configuration.md)** - Advanced setup and customization options
+- **[🚀 Quick Start Guide](doc/quick-start.md)** - Get up and running in minutes
+- **[🏗️ Architecture Overview](doc/architecture.md)** - System design and component relationships
+- **[⚙️ Configuration Guide](doc/configuration.md)** - Advanced setup and customization options
 
 ### 📋 Service Documentation
-- **[💾 Storage Service](docs/storage-service.md)** - Complete storage documentation with implementations and typed extensions
-- **[🌐 Network Service](docs/network-service.md)** - Network client documentation with interceptors and configuration
-- **[🔐 Token Management](docs/token-management.md)** - Token manager, refresh strategies, and security
+- **[💾 Storage Service](doc/storage-service.md)** - Complete storage documentation with implementations and typed extensions
+- **[🌐 Network Service](doc/network-service.md)** - Network client documentation with interceptors and configuration
+- **[🔐 Token Management](doc/token-management.md)** - Token manager, refresh strategies, and security
 
 ### 💡 Guides & Best Practices
-- **[📋 Complete Examples](docs/examples.md)** - Real-world usage patterns and implementation examples
-- **[🏆 Best Practices](docs/best-practices.md)** - Recommended patterns, security guidelines, and performance tips
+- **[📋 Complete Examples](doc/examples.md)** - Real-world usage patterns and implementation examples
+- **[🏆 Best Practices](doc/best-practices.md)** - Recommended patterns, security guidelines, and performance tips
 
 ## 🧩 Key Capabilities
 
@@ -131,7 +131,7 @@ The package includes comprehensive test coverage with unit tests, integration te
 
 ## 🤝 Getting Help
 
-- 📖 **Documentation**: Browse the [docs](docs/) directory for detailed guides
+- 📖 **Documentation**: Browse the [doc](doc/) directory for detailed guides
 - 🐛 **Issues**: [GitHub Issues](https://github.com/your-repo/flutter_infra/issues)
 - 💬 **Discussions**: [GitHub Discussions](https://github.com/your-repo/flutter_infra/discussions)
 
