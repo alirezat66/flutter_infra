@@ -12,8 +12,6 @@ topics:
   - network
   - http
   - secure-storage
-  - token-management
-  - infrastructure
 
 environment:
   sdk: ^3.7.2
