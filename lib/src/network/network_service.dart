@@ -20,6 +20,43 @@ class NetworkService {
     return NetworkService(client: client ?? HttpNetworkClient(config: config));
   }
 
+  // Factory method for creating NetworkService with TokenInterceptor
+  static Future<NetworkService> createWithTokenSupport({
+    NetworkClient? client,
+    NetworkConfig? config,
+    TokenManager? tokenManager,
+    TokenRefreshStrategy? refreshStrategy,
+  }) async {
+    // Create TokenInterceptor with optional refresh strategy
+    final tokenInterceptor = TokenInterceptor(
+      tokenManager: tokenManager,
+      refreshStrategy: refreshStrategy,
+    );
+
+    // Merge with existing interceptors or create new list
+    final existingInterceptors =
+        config?.interceptors ?? [const LoggerInterceptor()];
+    final allInterceptors = [...existingInterceptors, tokenInterceptor];
+
+    final finalConfig = NetworkConfig(
+      enableLogging: config?.enableLogging ?? true,
+      maxLoggerWidth: config?.maxLoggerWidth ?? 200,
+      timeout: config?.timeout ?? const Duration(seconds: 30),
+      baseUrl: config?.baseUrl,
+      defaultHeaders:
+          config?.defaultHeaders ??
+          const {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+          },
+      interceptors: allInterceptors,
+    );
+
+    return NetworkService(
+      client: client ?? HttpNetworkClient(config: finalConfig),
+    );
+  }
+
   // Basic HTTP methods
   Future<NetworkResponse> get(
     String path, {

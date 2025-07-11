@@ -19,11 +19,15 @@ class HttpNetworkClient implements NetworkClient {
   }
 
   /// Default configuration for HTTP with LoggerInterceptor
-  /// Note: TokenInterceptor is not included by default since it requires storage setup
+  /// TokenInterceptor can be added when storage is available
   static NetworkConfig _getDefaultConfig() {
     return NetworkConfig(
       enableLogging: true,
-      interceptors: [const LoggerInterceptor()],
+      interceptors: [
+        const LoggerInterceptor(),
+        // TokenInterceptor is not included by default to avoid storage dependency
+        // Users can add it when they configure storage
+      ],
     );
   }
 

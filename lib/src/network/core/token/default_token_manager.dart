@@ -23,4 +23,16 @@ class DefaultTokenManager implements TokenManager {
 
   @override
   TokenConfig get config => _config;
+
+  @override
+  Future<void> deleteRefreshToken() =>
+      _storage.deleteSecureKey(_config.refreshTokenStorageKey);
+
+  @override
+  Future<String?> getRefreshToken() =>
+      _storage.getSecureString(_config.refreshTokenStorageKey);
+
+  @override
+  Future<void> saveRefreshToken(String refreshToken) =>
+      _storage.setSecureString(_config.refreshTokenStorageKey, refreshToken);
 }
