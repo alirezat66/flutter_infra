@@ -126,7 +126,7 @@ class DioNetworkClient implements NetworkClient {
     );
   }
 
-  /// Converts Dio headers to Map<String,String>
+  /// Converts Dio headers to Map&lt;String,String&gt;
   Map<String, String> _convertHeaders(Headers headers) {
     final result = <String, String>{};
     headers.forEach((key, values) {

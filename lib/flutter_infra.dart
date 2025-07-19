@@ -47,6 +47,10 @@ export 'src/network/core/network_interceptor.dart';
 // Export network interceptors
 export 'src/network/core/inceptors/logger_interceptor.dart';
 export 'src/network/core/inceptors/token_interceptor.dart';
+export 'src/network/core/inceptors/cache_interceptor.dart';
+export 'src/network/core/inceptors/cache_config.dart';
+export 'src/network/core/inceptors/cache_entry.dart';
+export 'src/network/core/inceptors/cached_network_client.dart';
 
 // Export token management
 export 'src/network/core/token/token_manager.dart';
