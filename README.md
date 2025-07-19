@@ -14,7 +14,7 @@ A comprehensive Flutter package providing clean, type-safe local storage solutio
 - 🚀 **Dual HTTP Clients**: Built-in support for both dart:io HTTP and Dio implementations
 - 🔑 **Token Management**: Automatic token injection and secure storage integration
 - 🔄 **Refresh Token Strategy**: Configurable token refresh with Strategy design pattern
-- 📡 **Interceptor System**: LoggerInterceptor and TokenInterceptor with extensible design
+- 📡 **Interceptor System**: LoggerInterceptor, TokenInterceptor, and CacheInterceptor with extensible design
 
 ### 🔧 Common Features
 - 🔧 **Dependency Injection**: Clean DI support with flexible configuration
@@ -66,6 +66,27 @@ final networkService = await NetworkService.createWithTokenSupport(
 final userProfile = await networkService.getJson('/protected/profile');
 ```
 
+### With HTTP Response Caching
+
+```dart
+// Create network service with caching enabled
+final networkService = await NetworkService.createWithCache(
+  config: NetworkConfig(baseUrl: 'https://api.example.com'),
+  cacheConfig: CacheConfig(
+    defaultCacheDuration: Duration(minutes: 5),
+    maxCacheSize: 100,
+    customCacheDurations: {
+      '/users': Duration(hours: 1),
+      '/posts': Duration(minutes: 30),
+    },
+  ),
+);
+
+// Responses are automatically cached
+final users = await networkService.getJson('/users');  // Network call
+final usersAgain = await networkService.getJson('/users');  // Cached response
+```
+
 ## 📚 Documentation
 
 ### 📖 Getting Started
@@ -76,6 +97,7 @@ final userProfile = await networkService.getJson('/protected/profile');
 ### 📋 Service Documentation
 - **[💾 Storage Service](doc/storage-service.md)** - Complete storage documentation with implementations and typed extensions
 - **[🌐 Network Service](doc/network-service.md)** - Network client documentation with interceptors and configuration
+- **[🗄️ Cache Interceptor](doc/cache-interceptor.md)** - HTTP response caching with configurable options
 - **[🔐 Token Management](doc/token-management.md)** - Token manager, refresh strategies, and security
 
 ### 💡 Guides & Best Practices

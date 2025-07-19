@@ -285,7 +285,7 @@ class HttpNetworkClient implements NetworkClient {
     }
   }
 
-  /// Converts http package headers to Map<String,String>
+  /// Converts http package headers to Map&lt;String,String&gt;
   Map<String, String> _convertHeaders(Map<String, String> headers) {
     return Map<String, String>.from(headers);
   }

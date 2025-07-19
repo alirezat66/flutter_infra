@@ -1,6 +1,4 @@
 import 'package:flutter_infra/flutter_infra.dart';
-import 'package:flutter_infra/src/network/core/token/token_config.dart';
-import 'package:flutter_infra/src/network/core/token/token_manager.dart';
 
 class DefaultTokenManager implements TokenManager {
   final StorageService _storage;

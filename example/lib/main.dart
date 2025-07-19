@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'pages/default_usage_page.dart';
 import 'pages/common_usage_page.dart';
 import 'pages/advanced_usage_page.dart';
+import 'pages/cache_usage_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -128,6 +129,28 @@ class HomePage extends StatelessWidget {
                             context,
                             MaterialPageRoute(
                               builder: (context) => const AdvancedUsagePage(),
+                            ),
+                          ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Cache Usage Card
+                  Expanded(
+                    child: _ExampleCard(
+                      title: '🗄️ Cache Usage',
+                      subtitle:
+                          'HTTP response caching with configurable options',
+                      description:
+                          'Learn how to implement HTTP response caching with the caching interceptor, '
+                          'including cache statistics and cache management.',
+                      color: Colors.orange,
+                      onTap:
+                          () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const CacheUsagePage(),
                             ),
                           ),
                     ),
